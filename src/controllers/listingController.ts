@@ -61,6 +61,8 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
         if(listing.seller.toString() !== seller._id.toString()){
             return res.status(403).json({ error: "Not authorized to delete this listing" });
         }
+          await listing.deleteOne();
+        res.status(200).json({ message: "Listing deleted" });
 
     } catch(error){
          console.error("Delete listing error:", error);
