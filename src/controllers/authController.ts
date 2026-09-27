@@ -24,3 +24,18 @@ export const syncUser = async(req:AuthRequest, res: Response) => {
     res.status(500).json({ error: "Failed to sync user" });
     }
 }
+
+export const getCurrentUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findOne({ firebaseUid: req.firebaseUser!.uid });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Get current user error:", error);
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+};
