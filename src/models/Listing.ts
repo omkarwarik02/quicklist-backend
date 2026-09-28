@@ -6,6 +6,7 @@ export interface IListing extends Document {
     title:string;
     category:string;
     price:number;
+    phoneNumber:number;
     description:string;
     location:{
         name:string;
@@ -22,6 +23,7 @@ const lisitngSchema = new Schema<IListing>({
     title:{type:String, required:true},
     category: { type: String, required: true },
   price: { type: Number, required: true },
+  phoneNumber:{type:Number, required:true},
   description: { type: String, required: true },
   location: {
     name: { type: String, required: true },

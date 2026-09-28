@@ -8,9 +8,9 @@ export const createListing = async (req:AuthRequest, res:Response) =>{
     try{
 
     
-    const { photos, title, category, price, description, location } = req.body;
+    const { photos, title, category, price, phoneNumber, description, location } = req.body;
 
-    if(!photos || !title || !category || !price || !description || !location){
+    if(!photos || !title || !category || !price || !phoneNumber || !description || !location){
         return res.status(400).json({error:"Missing required fields"});
     }
 
@@ -26,6 +26,7 @@ export const createListing = async (req:AuthRequest, res:Response) =>{
       title,
       category,
       price,
+      phoneNumber,
       description,
       location,
     });
@@ -67,5 +68,14 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
     } catch(error){
          console.error("Delete listing error:", error);
     res.status(500).json({ error: "Failed to delete listing" });
+    }
+}
+export const getAllListings = async (req:AuthRequest, res:Response) =>{
+    try {
+        const listings = await Listing.find({ status: "active"}).sort({createdAt: -1});
+        res.status(200).json({ listings})
+    } catch(error){
+        console.error("Get all listings error:", error);
+        res.status(500).json({error: "Failed to fetch listings"});
     }
 }
