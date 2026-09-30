@@ -79,3 +79,15 @@ export const getAllListings = async (req:AuthRequest, res:Response) =>{
         res.status(500).json({error: "Failed to fetch listings"});
     }
 }
+
+export const getListingById = async(req:AuthRequest, res:Response)=>{
+    try{
+        const listing = await Listing.findById(req.params.id);
+        if(!listing) return res.status(404).json({error: "Listing not found"})
+
+            res.status(200).json({listing});
+    } catch(error){
+         console.error("Get listing by id error:", error);
+        res.status(500).json({ error: "Failed to fetch listing" });
+    }
+}
