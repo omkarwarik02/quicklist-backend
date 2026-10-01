@@ -4,7 +4,7 @@ import { initializeApp, cert } from "firebase-admin/app";
 
 const serviceAccountPath =
   process.env.FIREBASE_SERVICE_ACCOUNT_PATH ??
-  path.join(process.cwd(), "quicklist-68917-firebase-adminsdk-fbsvc-dbfab27e39.json");
+  path.join(process.cwd(), "serviceAccountKey.json");
 
 const ServiceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf-8"));
 

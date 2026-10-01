@@ -14,6 +14,10 @@ export const createListing = async (req:AuthRequest, res:Response) =>{
         return res.status(400).json({error:"Missing required fields"});
     }
 
+    if(typeof location.latitude !== "number" || typeof location.longitude !== "number"){
+        return res.status(400).json({ error: "location.latitude and location.longitude are required"});
+    }
+
     const seller = await User.findOne({firebaseUid:req.firebaseUser!.uid});
 
     if(!seller){
@@ -28,7 +32,15 @@ export const createListing = async (req:AuthRequest, res:Response) =>{
       price,
       phoneNumber,
       description,
-      location,
+      location:{
+        name:location.name,
+        latitude: location.latitude,
+        longitude:location.longitude,
+        geo:{
+            type:"Point",
+            coordinates:[location.longitude, location.latitude],
+        }
+      }
     });
     res.status(201).json({ listing});
 } catch(error){
@@ -90,4 +102,30 @@ export const getListingById = async(req:AuthRequest, res:Response)=>{
          console.error("Get listing by id error:", error);
         res.status(500).json({ error: "Failed to fetch listing" });
     }
+}
+
+export const getNearByListings = async (req:AuthRequest, res:Response)=>{
+    try{
+        const lat = Number(req.query.lat);
+        const lng = Number(req.query.lng);
+        const radiusKm = Number(req.query.radius) || 5;
+
+        if(!Number.isFinite(lat) || !Number.isFinite(lng) || req.query.lat === undefined || req.query.lng === undefined){
+             return res.status(400).json({ error: "lat and lng query params are required" });
+        }
+
+        const listings = await Listing.find({
+            status:"active",
+            "location.geo":{
+                $near:{
+                    $geometry:{type:"Point", coordinates:[lng,lat]},
+                    $maxDistance: radiusKm * 1000,
+                },
+            },
+        });
+        res.status(200).json({ listings})
+    } catch(error){
+        console.error("Get nearby listings error:", error);
+        res.status(500).json({ error: "Failed to fetch nearby listings" });
+    } 
 }

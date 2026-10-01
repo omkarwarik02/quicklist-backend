@@ -12,6 +12,10 @@ export interface IListing extends Document {
         name:string;
         latitude:number;
         longitude:number
+        geo:{
+          type:"Point";
+          coordinates:number[]
+        }
     };
     status:"active" | "completed";
     createdAt:Date
@@ -29,10 +33,16 @@ const lisitngSchema = new Schema<IListing>({
     name: { type: String, required: true },
     latitude: { type: Number, required: true },
     longitude: { type: Number, required: true },
+    geo:{
+      type:{type:String, enum:["Point"], default:"Point"},
+      coordinates: {type:[Number], required:true}
+    }
   },
   status:{type:String, enum:["active","completed"], default:"active"},
   createdAt:{type:Date, default:Date.now},
 });
+
+lisitngSchema.index({ "location.geo": "2dsphere"});
 
 
 
