@@ -6,6 +6,7 @@ export interface IUser extends Document {
     email: string;
     photoUrl?: string;
     phone?:string;
+     location?: string;
     createdAt:Date;
 }
 
@@ -15,6 +16,7 @@ const userSchema = new Schema<IUser>({
     email:{type:String, required:true, unique:true},
     photoUrl:{type:String},
     phone:{type:String},
+     location: { type: String }, 
     createdAt:{type:Date, default:Date.now},
 });
 
