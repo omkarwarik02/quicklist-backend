@@ -44,7 +44,7 @@ export const  updateProfile = async (req:AuthRequest, res:Response) =>{
   try{
     const { phone, location} = req.body;
 
-    const user = await User.findByIdAndUpdate(
+    const user = await User.findOneAndUpdate(
       {firebaseUid: req.firebaseUser!.uid},
       { $set:{ phone, location}},
       { new:true}
