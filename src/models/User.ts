@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IUser extends Document {
     firebaseUid: string;
@@ -7,6 +7,7 @@ export interface IUser extends Document {
     photoUrl?: string;
     phone?:string;
      location?: string;
+    interestedListings: Types.ObjectId[];
     createdAt:Date;
 }
 
@@ -17,6 +18,7 @@ const userSchema = new Schema<IUser>({
     photoUrl:{type:String},
     phone:{type:String},
      location: { type: String }, 
+     interestedListings: [{ type: Schema.Types.ObjectId, ref: "Listing", default: [] }],
     createdAt:{type:Date, default:Date.now},
 });
 

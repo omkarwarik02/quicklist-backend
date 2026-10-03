@@ -60,3 +60,33 @@ export const  updateProfile = async (req:AuthRequest, res:Response) =>{
     res.status(500).json({ error: "Failed to update profile" });
   }
 }
+
+export const addInterest = async(req:AuthRequest, res:Response) =>{
+  try{
+    const { listingId} = req.params;
+    const user = await User.findOneAndUpdate(
+      {firebaseUid:req.firebaseUser!.uid},
+      {$addToSet:{interestedListings:listingId}},
+      { new: true}
+    );
+    if(!user){
+      return res.status(404).json({ error:"User not found"});
+    }
+    res.status(200).json({user});
+  }catch(err){
+    console.error("Add interest error:", err);
+    res.status(500).json({ error: "Failed to save interest" });
+  }
+}
+export const getInterests = async (req:AuthRequest, res:Response) =>{
+  try{
+    const user = await User.findOne({ firebaseUid: req.firebaseUser!.uid}).populate("interestedlistings");
+    if(!user){
+      return res.status(404).json({ error:"User not found"});
+    }
+    res.status(200).json({ listings: user.interestedListings });
+  } catch(err){
+    console.error("Get interests error:", err);
+    res.status(500).json({ error: "Failed to fetch interests" });
+  }
+} 
