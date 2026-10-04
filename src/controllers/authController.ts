@@ -80,7 +80,7 @@ export const addInterest = async(req:AuthRequest, res:Response) =>{
 }
 export const getInterests = async (req:AuthRequest, res:Response) =>{
   try{
-    const user = await User.findOne({ firebaseUid: req.firebaseUser!.uid}).populate("interestedlistings");
+    const user = await User.findOne({ firebaseUid: req.firebaseUser!.uid}).populate("interestedListings");
     if(!user){
       return res.status(404).json({ error:"User not found"});
     }
