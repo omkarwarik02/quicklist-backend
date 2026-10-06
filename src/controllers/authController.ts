@@ -80,7 +80,7 @@ export const addInterest = async(req:AuthRequest, res:Response) =>{
 }
 export const getInterests = async (req:AuthRequest, res:Response) =>{
   try{
-    const user = await User.findOne({ firebaseUid: req.firebaseUser!.uid}).populate("interestedListings");
+    const user = await User.findOne({ firebaseUid: req.firebaseUser!.uid}).populate("interestedListings").lean();
     if(!user){
       return res.status(404).json({ error:"User not found"});
     }
@@ -90,3 +90,54 @@ export const getInterests = async (req:AuthRequest, res:Response) =>{
     res.status(500).json({ error: "Failed to fetch interests" });
   }
 } 
+
+export const savePushToken = async(req:AuthRequest, res:Response) =>{
+  try{
+    const { pushToken} = req.body;
+    if(!pushToken || typeof pushToken !== "string"){
+      return res.status(400).json({ error: "pushToken is required"});
+    }
+
+    const user = await User.findOneAndUpdate(
+      {firebaseUid: req.firebaseUser!.uid},
+      {$set:{pushToken}},
+      {returnDocument:"after"}
+    );
+    if(!user){
+      return res.status(404).json({ error: "User not found"})
+    }
+
+    res.status(200).json({ sucess:true})
+  } catch(error){
+       console.error("Save push token error:", error);
+    res.status(500).json({ error: "Failed to save push token" });
+  }
+}
+
+export const updateLastKnownLocation = async(req:AuthRequest, res:Response)=>{
+  try{
+    const { latitude, longitude} = req.body;
+    if(!Number.isFinite(latitude) || !Number.isFinite(longitude)){
+      return res.status(400).json({ error:"latitude and longitude must be numbers"});
+    }
+
+    const user = await User.findOneAndUpdate(
+      {firebaseUid:req.firebaseUser!.uid},
+      {
+        $set:{
+          lastKnownLocation:{ type: "Point", coordinates:[longitude, latitude]},
+        },
+      },
+      {returnDocument:"after"}
+    );
+     if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ success: true });
+
+  } catch(err){
+          console.error("Update location error:", err);
+    res.status(500).json({ error: "Failed to update location" });
+  }
+}

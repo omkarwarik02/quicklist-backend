@@ -3,6 +3,7 @@ import { Listing } from "../models/Listing";
 import { User } from "../models/User";
 import { AuthRequest } from "../middleware/authMiddleware";
 
+import { notifyNearbyUsers } from "../utils/notifyNearByUsers";
 
 export const createListing = async (req:AuthRequest, res:Response) =>{
     try{
@@ -42,6 +43,10 @@ export const createListing = async (req:AuthRequest, res:Response) =>{
         }
       }
     });
+    notifyNearbyUsers(listing).catch((err) =>
+  console.error("Notify nearby users failed:", err)
+);
+
     res.status(201).json({ listing});
 } catch(error){
     console.error("Create listing error:", error);
@@ -51,11 +56,11 @@ export const createListing = async (req:AuthRequest, res:Response) =>{
 
 export const getMyListings = async (req:AuthRequest, res:Response) => {
     try {
-        const seller = await User.findOne({firebaseUid:req.firebaseUser!.uid})
+        const seller = await User.findOne({firebaseUid:req.firebaseUser!.uid}).lean()
        if(!seller) {
             return res.status(404).json({error:"Seller not found"});
         }
-        const listings = await Listing.find({ seller: seller._id}).sort({ createdAt: -1});
+        const listings = await Listing.find({ seller: seller._id}).sort({ createdAt: -1}).lean();
         res.status(200).json({ listings});
     } catch(error){
         console.error("Get my listings error:", error);
@@ -84,8 +89,16 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
 }
 export const getAllListings = async (req:AuthRequest, res:Response) =>{
     try {
-        const listings = await Listing.find({ status: "active"}).sort({createdAt: -1});
-        res.status(200).json({ listings})
+        const page = Math.max(Number(req.query.page) || 1,1);
+        const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+        const skip = (page - 1) * limit;
+
+        
+
+        const rows = await Listing.find({ status: "active"}).sort({createdAt: -1}).skip(skip).limit(limit + 1).lean();
+        const hasMore = rows.length > limit;
+        const listings = hasMore ? rows.slice(0, limit) : rows;
+        res.status(200).json({ listings , page , hasMore});
     } catch(error){
         console.error("Get all listings error:", error);
         res.status(500).json({error: "Failed to fetch listings"});
@@ -94,7 +107,7 @@ export const getAllListings = async (req:AuthRequest, res:Response) =>{
 
 export const getListingById = async(req:AuthRequest, res:Response)=>{
     try{
-        const listing = await Listing.findById(req.params.id);
+        const listing = await Listing.findById(req.params.id).lean();
         if(!listing) return res.status(404).json({error: "Listing not found"})
 
             res.status(200).json({listing});
@@ -114,7 +127,11 @@ export const getNearByListings = async (req:AuthRequest, res:Response)=>{
              return res.status(400).json({ error: "lat and lng query params are required" });
         }
 
-        const listings = await Listing.find({
+        const page = Math.max(Number(req.query.page) || 1, 1);
+        const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+        const skip = (page - 1) * limit;
+
+        const rows = await Listing.find({
             status:"active",
             "location.geo":{
                 $near:{
@@ -122,8 +139,15 @@ export const getNearByListings = async (req:AuthRequest, res:Response)=>{
                     $maxDistance: radiusKm * 1000,
                 },
             },
-        });
-        res.status(200).json({ listings})
+        }).skip(skip)
+        .limit(limit + 1)
+        .lean();
+
+
+
+        const hasMore = rows.length > limit;
+        const listings = hasMore ? rows.slice(0, limit) : rows;
+        res.status(200).json({ listings, page, hasMore})
     } catch(error){
         console.error("Get nearby listings error:", error);
         res.status(500).json({ error: "Failed to fetch nearby listings" });

@@ -8,6 +8,11 @@ export interface IUser extends Document {
     phone?:string;
      location?: string;
     interestedListings: Types.ObjectId[];
+    pushToken?:string;
+    lastKnownLocation?:{
+        type:"Point";
+        coordinates:number[];
+    }
     createdAt:Date;
 }
 
@@ -19,9 +24,13 @@ const userSchema = new Schema<IUser>({
     phone:{type:String},
      location: { type: String }, 
      interestedListings: [{ type: Schema.Types.ObjectId, ref: "Listing", default: [] }],
+     pushToken:{type:String},
+     lastKnownLocation:{type:{type:String, enum:["Point"]},
+     coordinates:{ type:[Number]},
+    },
     createdAt:{type:Date, default:Date.now},
 });
 
 
-
+userSchema.index({ lastKnownLocation:"2dsphere"});
 export const User = mongoose.model<IUser>("User",userSchema);
