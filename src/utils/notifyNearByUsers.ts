@@ -14,7 +14,7 @@ export async function notifyNearbyUsers(listing:NewListing, radiusKm = 10){
         _id:{ $ne:listing.seller},
         lastKnownLocation:{
             $near:{
-                $geometery:{
+                $geometry:{
                     type:"Point",
                     coordinates:listing.location.geo.coordinates,
                 },
@@ -51,7 +51,10 @@ for(let i = 0; i < messages.length; i += 100){
     });
     if(!response.ok){
         console.error("Expo push failed:", response.status, await response.text());
+          continue;
     }
+    const result = await response.json();          // NEW
+    console.log("Expo tickets:", JSON.stringify(result))
 }
 
 }
